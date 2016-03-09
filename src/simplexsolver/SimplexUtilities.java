@@ -26,6 +26,15 @@ public class SimplexUtilities
         EQUAL, LESS_THAN, GREATER_THAN
     }
     
+    /**
+     * Represents the two possible objectives to be reached in a linear
+     * program (either min or max the objective function).
+     */
+    public enum Objective
+    {
+        MIN, MAX
+    }
+    
     private static TreeSet<Variable> _variables = null;
     
     /**
