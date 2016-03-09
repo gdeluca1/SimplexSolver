@@ -1,21 +1,29 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package simplexsolver;
+
+import javax.swing.JFrame;
 
 /**
  *
  * @author Gennaro
  */
-public class SimplexSolver {
-
+public class SimplexSolver 
+{
+    private static JFrame _parent;
+    
     /**
      * @param args the command line arguments
      */
-    public static void main(String[] args) {
-        // TODO code application logic here
+    public static void main(String[] args) 
+    {
+        SimplexUtilities.buildEquation("13X0 + X2 + 4X3 + X1 +*");
     }
     
+    /**
+     * Returns the parent panel of the GUI.
+     * @return 
+     */
+    public static JFrame getParent()
+    {
+        return _parent;
+    }
 }
