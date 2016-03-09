@@ -2,6 +2,7 @@ package simplexsolver;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.util.Stack;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -15,20 +16,37 @@ public class SimplexFrame extends JFrame
 {
     private final String _decisionVariableInfo =
             "<html>Please input the number of decision variables you would like to use.<br>" +
-            "Decision variables are named X0, X1, ..., XN-1 where N is your input number.</html>";
+            "Decision variables are named X1, X2, ..., XN where N is your input number.</html>";
+    private final String _objectiveFunctionInfo =
+            "<html>Input your objective function. Example: 3X1 + 4X2 - 8X3</html>";
+    private final String _constraintsInfo =
+            "<html>Now you can enter any number of constraints. The first part is in the same<br>" +
+            "format as the objective function (e.g. 3X1 + 4X2 - 8X3). Then you must select an<br>" +
+            "operator and type in a constant in the final box. All variables must be on the left<br>" +
+            "hand side and all constants must be on the right hand side.<br>" +
+            "Finally, you can use the Solve button to solve the equation, or the<br>" +
+            "+ and - buttons to add or remove constraints.</html>";
+    
+    private final VariablesPanel _variablesPanel;
+    private final ObjectivePanel _objectivePanel;
+    private final ButtonPanel _buttonPanel;
+    private final Stack<ConstraintPanel> _constraintPanels;
+    
+    private final GridBagConstraints c;
+    private final JPanel container;
+    
     public SimplexFrame()
     {
         super();
         setSize(700, 700);
         setTitle("Simplex Solver");
         
-        JPanel container = new JPanel();
+        container = new JPanel();
         JScrollPane scrollPane = new JScrollPane(container);
         add(scrollPane);
-//        setLayout(new BoxLayout(getContentPane(), BoxLayout.Y_AXIS));
-//        setLayout(new GridLayout(0, 1));
+
         container.setLayout(new GridBagLayout());
-        GridBagConstraints c = new GridBagConstraints();
+        c = new GridBagConstraints();
         c.fill = GridBagConstraints.NONE;
         c.anchor = GridBagConstraints.FIRST_LINE_START;
         
@@ -40,37 +58,92 @@ public class SimplexFrame extends JFrame
         c.weighty = 1;
         container.add(fillerPanel, c);
         
-        c.gridx = 0;
+//        c.gridx = 0;
         c.gridy = 0;
         c.weighty = 0;
         
-        JLabel decisionVarInfoLabel = new JLabel(_decisionVariableInfo);
-        decisionVarInfoLabel.setFont(decisionVarInfoLabel.getFont().deriveFont(12.0f));
-        container.add(decisionVarInfoLabel, c);
+        // Wrap the label in a panel to maintain identical spacing.
+        JPanel infoPanel = new JPanel();
+        JLabel infoLabel = new JLabel(_decisionVariableInfo);
+        infoLabel.setFont(infoLabel.getFont().deriveFont(12.0f));
+        infoPanel.add(infoLabel);
+        container.add(infoPanel, c);
         
-//        c.gridy = 1;
         c.gridy = GridBagConstraints.RELATIVE;
-        container.add(new ConstraintPanel(), c);
+        _variablesPanel = new VariablesPanel();
+        container.add(_variablesPanel, c);
         
-//        c.gridy = 2;
-        container.add(new ConstraintPanel(), c);
+        infoPanel = new JPanel();
+        infoLabel = new JLabel();
+        infoLabel.setText(_objectiveFunctionInfo);
+        infoPanel.add(infoLabel);
+        container.add(infoPanel, c);
         
-//        c.gridy = 3;
-        container.add(new ConstraintPanel(), c);
+        _objectivePanel = new ObjectivePanel();
+        container.add(_objectivePanel, c);
         
-//        c.gridy = 4;
-        c.anchor = GridBagConstraints.PAGE_END;
-        container.add(new JLabel("Hello"), c);
+        infoPanel = new JPanel();
+        infoLabel = new JLabel();
+        infoLabel.setText(_constraintsInfo);
+        infoPanel.add(infoLabel);
+        container.add(infoPanel, c);
         
-        c.anchor = GridBagConstraints.FIRST_LINE_START;
+        _buttonPanel = new ButtonPanel();
+        container.add(_buttonPanel, c);
         
-        for (int i = 0; i < 20; i++)
-        {
-//            c.gridy = 5 + i;
-            container.add(new ConstraintPanel(), c);
-        }
+        _constraintPanels = new Stack<>();
+        _constraintPanels.push(new ConstraintPanel());
+        container.add(_constraintPanels.peek(), c);
         
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setVisible(true);
+    }
+    
+    /**
+     * Adds a new constraint panel to the frame.
+     * @return The constraint panel that was added.
+     */
+    public ConstraintPanel addConstraintPanel()
+    {
+        ConstraintPanel toAdd = new ConstraintPanel();
+        _constraintPanels.push(toAdd);
+        container.add(toAdd, c);
+        return toAdd;
+    }
+    
+    /**
+     * Removes the last added constraint panel. Will throw an exception
+     * if there are no constraint panels to remove.
+     * @return The constraint panel that was removed.
+     */
+    public ConstraintPanel removeConstraintPanel()
+    {
+        ConstraintPanel toRemove = _constraintPanels.pop();
+        container.remove(toRemove);
+        return toRemove;
+    }
+    
+    public int getConstraintPanelCount()
+    {
+        return _constraintPanels.size();
+    }
+    
+    public Stack<ConstraintPanel> getConstraintPanels()
+    {
+        return _constraintPanels;
+    }
+    
+    public ButtonPanel getButtonPanel()
+    {
+        return _buttonPanel;
+    }
+    
+    public VariablesPanel getVariablesPanel()
+    {
+        return _variablesPanel;
+    }
+    
+    public ObjectivePanel getObjectivePanel()
+    {
+        return _objectivePanel;
     }
 }

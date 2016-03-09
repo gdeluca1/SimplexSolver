@@ -17,6 +17,7 @@ public class SimplexSolver
     {
 //        SimplexUtilities.buildEquation("13X0 + X2 + 4X3 + X1 +*");
         SimplexFrame frame = new SimplexFrame();
+        frame.setVisible(true);
     }
     
     /**
