@@ -58,8 +58,13 @@ public class ConstraintPanel extends JPanel
             throw new IllegalStateException("Only ≥, ≤, and = should be selectable options.");
     }
     
+    public boolean rightHandSideEntered()
+    {
+        return !_rightHandSide.getText().trim().equals("");
+    }
+    
     public int getRightHandSide()
     {
-        return Integer.getInteger(_rightHandSide.getText());
+        return Integer.parseInt(_rightHandSide.getText());
     }
 }

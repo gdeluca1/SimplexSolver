@@ -8,7 +8,7 @@ import javax.swing.JFrame;
  */
 public class SimplexSolver 
 {
-    private static JFrame _parent;
+    private static SimplexFrame _frame;
     
     /**
      * @param args the command line arguments
@@ -16,8 +16,9 @@ public class SimplexSolver
     public static void main(String[] args) 
     {
 //        SimplexUtilities.buildEquation("13X0 + X2 + 4X3 + X1 +*");
-        SimplexFrame frame = new SimplexFrame();
-        frame.setVisible(true);
+        _frame = new SimplexFrame();
+        SimplexController.attachController(_frame);
+        _frame.setVisible(true);
     }
     
     /**
@@ -26,6 +27,6 @@ public class SimplexSolver
      */
     public static JFrame getParent()
     {
-        return _parent;
+        return _frame;
     }
 }

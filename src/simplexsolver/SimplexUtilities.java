@@ -48,9 +48,19 @@ public class SimplexUtilities
             // This set should sort by variable index to guarantee order in all other objects.
             _variables = new TreeSet<>((Variable v1, Variable v2) ->
             {
-                return v2.getIndex() - v1.getIndex();
+                return v1.getIndex() - v2.getIndex();
             });
         }
+        
+        _variables.add(variable);
+    }
+    
+    /**
+     * Resets the variables for a new run of the simplex algorithm.
+     */
+    public static void reset()
+    {
+        _variables = null;
     }
     
     /**
@@ -68,7 +78,7 @@ public class SimplexUtilities
         if (syntaxError == -1)
             return null;
         else if (syntaxError == equationString.length())
-            return "Your equation is incomplete.";
+            return "Your equation is incomplete: " + equationString;
         else
             return "Invalid character <" + equationString.charAt(syntaxError) + "> at index " + 
                     syntaxError + " in equation: " + equationString;

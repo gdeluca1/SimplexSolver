@@ -13,9 +13,9 @@ public class Variable
     /**
      * Defines a new decision variable with the specified name.
      * @param name The decision variable's name.
-     * @param index The index of this variable (X0 is index 0, X4 is index 4, etc.).
+     * @param index The index of this variable (X1 is index 1, X4 is index 4, etc.).
      */
-    private Variable(String name, int index)
+    public Variable(String name, int index)
     {
         _name = name;
         _index = index;

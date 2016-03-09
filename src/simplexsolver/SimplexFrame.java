@@ -107,6 +107,8 @@ public class SimplexFrame extends JFrame
         ConstraintPanel toAdd = new ConstraintPanel();
         _constraintPanels.push(toAdd);
         container.add(toAdd, c);
+        container.revalidate();
+        container.repaint();
         return toAdd;
     }
     
@@ -119,6 +121,8 @@ public class SimplexFrame extends JFrame
     {
         ConstraintPanel toRemove = _constraintPanels.pop();
         container.remove(toRemove);
+        container.revalidate();
+        container.repaint();
         return toRemove;
     }
     

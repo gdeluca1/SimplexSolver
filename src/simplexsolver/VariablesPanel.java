@@ -28,8 +28,13 @@ public class VariablesPanel extends JPanel
         add(_variableCount);
     }
     
+    public boolean variableCountEntered()
+    {
+        return !_variableCount.getText().trim().equals("");
+    }
+    
     public int getVariableCount()
     {
-        return Integer.getInteger(_variableCount.getText());
+        return Integer.parseInt(_variableCount.getText().replace(",", ""));
     }
 }
