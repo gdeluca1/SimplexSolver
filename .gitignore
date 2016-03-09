@@ -1,0 +1,4 @@
+# Ignore everything except for the .gitignore file and the source code files.
+/*
+!/src
+!.gitignore
