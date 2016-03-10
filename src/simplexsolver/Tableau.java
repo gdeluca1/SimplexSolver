@@ -253,6 +253,24 @@ public class Tableau
                 else
                     mrt[i - 1] = _matrix[i][_matrix[i].length - 1] / _matrix[i][mostNegativeIndex];
             }
+            
+            // Find the smallest mrt (if it is a tie, we will grab the first one we see).
+            double smallestMRT = mrt[0];
+            int smallestMRTIndex = 0;
+            for (int i = 1; i < mrt.length; i++)
+            {
+                if (mrt[i] < smallestMRT)
+                {
+                    smallestMRT = mrt[i];
+                    smallestMRTIndex = i;
+                }
+            }
+            
+            // Now that we have our entering and leaving variables, we need to
+            // create a new matrix for our tableau.
+            double[][] newMatrix = new double[_matrix.length][_matrix[0].length];
+            // TODO: I need an array of the basic variables so I can keep track of them.
+            // May integrate it into stringifyTableau as well.
         }
     }
     
