@@ -91,6 +91,7 @@ public class SimplexController
             // Simplex algorithm now.
             Tableau tableau = new Tableau(objectiveFunction, constraints);
             String solution = tableau.solve();
+            GraphicUtilities.showMessage(solution, "Solution Found");
             System.out.println(solution);
         });
         

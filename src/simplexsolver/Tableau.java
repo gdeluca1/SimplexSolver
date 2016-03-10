@@ -363,7 +363,7 @@ public class Tableau
             for (int i = 1; i < _matrix.length; i++)
             {
                 if (_matrix[i][mostNegativeIndex] <= 0)
-                    mrt[i - 1] = Double.NaN;
+                    mrt[i - 1] = Double.POSITIVE_INFINITY;
                 else
                     mrt[i - 1] = _matrix[i][_matrix[i].length - 1] / _matrix[i][mostNegativeIndex];
             }
