@@ -8,9 +8,9 @@ import java.util.HashMap;
  */
 public class Constraint 
 {
-    private HashMap<Variable, Integer> _equation;
-    private SimplexUtilities.Sign _sign;
-    private int _rhs;
+    private final HashMap<Variable, Integer> _equation;
+    private final SimplexUtilities.Sign _sign;
+    private final int _rhs;
     
     /**
      * Define a constraint.

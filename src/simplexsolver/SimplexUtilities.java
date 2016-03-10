@@ -1,11 +1,9 @@
 package simplexsolver;
 
 import java.util.HashMap;
-import java.util.Map;
 import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 /**
  * This class provides utilities needed for creating and solving
