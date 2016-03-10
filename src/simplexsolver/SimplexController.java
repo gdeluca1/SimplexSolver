@@ -98,7 +98,6 @@ public class SimplexController
         _frame.getButtonPanel().getAddButton().addActionListener(e ->
         {
             _frame.addConstraintPanel();
-            System.out.println("Adding panel.");
         });
         
         _frame.getButtonPanel().getRemoveButton().addActionListener(e ->

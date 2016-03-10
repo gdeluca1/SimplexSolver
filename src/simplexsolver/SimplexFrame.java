@@ -20,7 +20,7 @@ public class SimplexFrame extends JFrame
     private final String _objectiveFunctionInfo =
             "<html>Input your objective function. Example: 3X1 + 4X2 - 8X3</html>";
     private final String _constraintsInfo =
-            "<html>Now you can enter any number of constraints. The first part is in the same<br>" +
+            "<html>Now you can enter any number of constraints. The left hand side is in the same<br>" +
             "format as the objective function (e.g. 3X1 + 4X2 - 8X3). Then you must select an<br>" +
             "operator and type in a constant in the final box. All variables must be on the left<br>" +
             "hand side and all constants must be on the right hand side.<br>" +
