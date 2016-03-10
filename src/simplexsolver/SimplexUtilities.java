@@ -72,7 +72,7 @@ public class SimplexUtilities
     private static String checkEquationSyntax(String equationString)
     {
         // Format: c1X1 + c2X2 + ... cnXn
-        String pattern = "-?(\\d*[A-Z]+\\d+\\s?[+-]\\s?)*(\\d*[A-Z]+\\d+)";
+        String pattern = "-?((\\d+(\\.\\d+)?)?[A-Z]+\\d+\\s?[+-]\\s?)*((\\d+(\\.\\d+)?)?[A-Z]+\\d+)";
         equationString = equationString.toUpperCase().trim();
         int syntaxError = findSyntaxError(Pattern.compile(pattern), equationString);
         if (syntaxError == -1)
@@ -111,9 +111,9 @@ public class SimplexUtilities
         }
     }
     
-    public static HashMap<Variable, Integer> buildEquation(String equationString)
+    public static HashMap<Variable, Double> buildEquation(String equationString)
     {
-        HashMap<Variable, Integer> toReturn = new HashMap<>();
+        HashMap<Variable, Double> toReturn = new HashMap<>();
         String syntaxError = checkEquationSyntax(equationString);
         if (syntaxError != null)
         {
@@ -123,7 +123,7 @@ public class SimplexUtilities
         
         _variables.stream().forEach(v -> 
         {
-            toReturn.put(v, 0);
+            toReturn.put(v, 0.0);
         });
         
         // Since the syntax check was successful, we can remove all the whitespaces
@@ -135,9 +135,10 @@ public class SimplexUtilities
         for (int i = 0; i < equationString.length(); i++)
         {
             // First we need a number.
-            int number = 0;
+            double number = 0;
             boolean isNegative;
             char c = equationString.charAt(i);
+            int fractionalCounter = 0;
             StringBuilder variableName = new StringBuilder();
             
             // If this is the first iteration, the first character may be a negative sign.
@@ -170,6 +171,21 @@ public class SimplexUtilities
                 number += Character.getNumericValue(c);
                 i++;
                 c = equationString.charAt(i);
+                
+                // If we reached a decimal point, we now have to handle the fractional portion.
+                if (c == '.')
+                {
+                    i++;
+                    c = equationString.charAt(i);
+                    fractionalCounter = 1;
+                    while (isDigit(c))
+                    {
+                        number += (Character.getNumericValue(c) * Math.pow(10, -fractionalCounter));
+                        fractionalCounter++;
+                        i++;
+                        c = equationString.charAt(i);
+                    }
+                }
             }
             
             // If the number remained 0, that means there was no number in front of the variable.
@@ -200,7 +216,7 @@ public class SimplexUtilities
             // will automatically re-increment i.
             i--;
             
-//            System.out.println("Constant: " + number + " Variable name: " + variableName.toString());
+            System.out.println("Constant: " + number + " Variable name: " + variableName.toString());
             
             Object[] matches = toReturn
                 .keySet()

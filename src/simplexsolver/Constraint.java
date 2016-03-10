@@ -8,7 +8,7 @@ import java.util.HashMap;
  */
 public class Constraint 
 {
-    private final HashMap<Variable, Integer> _equation;
+    private final HashMap<Variable, Double> _equation;
     private final SimplexUtilities.Sign _sign;
     private final int _rhs;
     
@@ -18,14 +18,14 @@ public class Constraint
      * @param sign The sign of the equation.
      * @param rhs The constant on the right hand side of the equation.
      */
-    public Constraint(HashMap<Variable, Integer> equation, SimplexUtilities.Sign sign, int rhs)
+    public Constraint(HashMap<Variable, Double> equation, SimplexUtilities.Sign sign, int rhs)
     {
         _equation = equation;
         _sign = sign;
         _rhs = rhs;
     }
     
-    public HashMap<Variable, Integer> getEquation()
+    public HashMap<Variable, Double> getEquation()
     {
         return _equation;
     }

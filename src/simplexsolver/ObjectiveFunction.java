@@ -10,10 +10,10 @@ import java.util.stream.Collectors;
  */
 public class ObjectiveFunction 
 {
-    private HashMap<Variable, Integer> _equation;
+    private HashMap<Variable, Double> _equation;
     private SimplexUtilities.Objective _objective;
     
-    public ObjectiveFunction(HashMap<Variable, Integer> equation, SimplexUtilities.Objective objective)
+    public ObjectiveFunction(HashMap<Variable, Double> equation, SimplexUtilities.Objective objective)
     {
         _equation = equation;
         _objective = objective;
@@ -30,7 +30,7 @@ public class ObjectiveFunction
             throw new IllegalStateException("Cannot convert the objective function to maximize if it is already a maximization problem.");
         
         // All we have to do is flip all the signs.
-        _equation = (HashMap<Variable, Integer>)_equation
+        _equation = (HashMap<Variable, Double>)_equation
                 .entrySet()
                 .stream()
                 .collect(Collectors.toMap(

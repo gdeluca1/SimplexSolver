@@ -65,7 +65,7 @@ public class SimplexController
             }
             
             // Check the objective function.
-            HashMap<Variable, Integer> objectiveFunction = SimplexUtilities.buildEquation(_frame.getObjectivePanel().getEquation());
+            HashMap<Variable, Double> objectiveFunction = SimplexUtilities.buildEquation(_frame.getObjectivePanel().getEquation());
             if (objectiveFunction == null)
             {
                 // There was something wrong (and an error message has already been shown). Stop running.
@@ -73,10 +73,10 @@ public class SimplexController
             }
             
             // Check all of the constraints.
-            ArrayList<HashMap<Variable, Integer>> constraints = new ArrayList<>();
+            ArrayList<HashMap<Variable, Double>> constraints = new ArrayList<>();
             for (ConstraintPanel panel : _frame.getConstraintPanels())
             {
-                HashMap<Variable, Integer> constraint = SimplexUtilities.buildEquation(panel.getEquation());
+                HashMap<Variable, Double> constraint = SimplexUtilities.buildEquation(panel.getEquation());
                 if (constraint == null)
                 {
                     // Error in constraint. An error message has already been shown. Stop running.
