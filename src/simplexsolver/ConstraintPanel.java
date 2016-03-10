@@ -63,9 +63,9 @@ public class ConstraintPanel extends JPanel
         return !_rightHandSide.getText().trim().equals("");
     }
     
-    public int getRightHandSide()
+    public double getRightHandSide()
     {
-        return Integer.parseInt(_rightHandSide.getText());
+        return Double.parseDouble(_rightHandSide.getText());
     }
     
     /**

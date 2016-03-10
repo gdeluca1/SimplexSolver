@@ -10,7 +10,7 @@ public class Constraint
 {
     private final HashMap<Variable, Double> _equation;
     private final SimplexUtilities.Sign _sign;
-    private final int _rhs;
+    private final double _rhs;
     
     /**
      * Define a constraint.
@@ -18,7 +18,7 @@ public class Constraint
      * @param sign The sign of the equation.
      * @param rhs The constant on the right hand side of the equation.
      */
-    public Constraint(HashMap<Variable, Double> equation, SimplexUtilities.Sign sign, int rhs)
+    public Constraint(HashMap<Variable, Double> equation, SimplexUtilities.Sign sign, double rhs)
     {
         _equation = equation;
         _sign = sign;
@@ -35,7 +35,7 @@ public class Constraint
         return _sign;
     }
     
-    public int getRightHandSide()
+    public double getRightHandSide()
     {
         return _rhs;
     }
