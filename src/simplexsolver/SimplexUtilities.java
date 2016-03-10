@@ -72,7 +72,7 @@ public class SimplexUtilities
     private static String checkEquationSyntax(String equationString)
     {
         // Format: c1X1 + c2X2 + ... cnXn
-        String pattern = "(\\d*[A-Z]+\\d*\\s[+-]\\s)*(\\d*[A-Z]+\\d*)";
+        String pattern = "-?(\\d*[A-Z]+\\d+\\s?[+-]\\s?)*(\\d*[A-Z]+\\d+)";
         equationString = equationString.toUpperCase().trim();
         int syntaxError = findSyntaxError(Pattern.compile(pattern), equationString);
         if (syntaxError == -1)
@@ -121,6 +121,108 @@ public class SimplexUtilities
             return null;
         }
         
+        _variables.stream().forEach(v -> 
+        {
+            toReturn.put(v, 0);
+        });
+        
+        // Since the syntax check was successful, we can remove all the whitespaces
+        // to make parsing the string easier.
+        equationString = equationString.replace(" ", "");
+        
+        // Now we have to step through the string and assign the correct integers
+        // to each variable.
+        for (int i = 0; i < equationString.length(); i++)
+        {
+            // First we need a number.
+            int number = 0;
+            boolean isNegative;
+            char c = equationString.charAt(i);
+            StringBuilder variableName = new StringBuilder();
+            
+            // If this is the first iteration, the first character may be a negative sign.
+            if (i == 0)
+            {
+                isNegative = (c == '-');
+                // If this is the first iteration, and the first char is a -, we need
+                // to eat that char to reach the first number.
+                if (isNegative)
+                {
+                    i++;
+                    c = equationString.charAt(i);
+                }
+            }
+            else
+            {
+                // If this is a different iteration, we will have to eat potential
+                // spaces and find a sign.
+//                if (c == ' ');
+//                {
+//                    // At most 1 space between operators.
+//                    i++;
+//                    c = equationString.charAt(i);
+//                }
+                
+                // Check the sign.
+                isNegative = (c == '-');
+                i++;
+                c = equationString.charAt(i);
+                
+                // Eat another potential space.
+//                if (c == ' ')
+//                {
+//                    i++;
+//                    c = equationString.charAt(i);
+//                }
+            }
+            
+            // Since the regex was successful, there is guaranteed to be a variable
+            // after every constant.
+            while (isDigit(c))
+            {
+                // First, we have to make room for the new number in the one's place.
+                number *= 10;
+                number += Character.getNumericValue(c);
+                i++;
+                c = equationString.charAt(i);
+            }
+            
+            // If the number remained 0, that means there was no number in front of the variable.
+            // This means the coefficient of the variable is 1.
+            if (number == 0)
+                number = 1;
+            
+            if (isNegative)
+                number *= -1;
+            
+            // Now we need the variable name. In the current implementation,
+            // we will assume that all variables are named XN where N is an integer.
+            do
+            {
+                // The first char is 'X'.
+                // Build the variable number.
+                variableName.append(c);
+                i++;
+                
+                // If we reach the end of the string, i will extend one char too far,
+                // in which case we should just exit the loop.
+                if (i  == equationString.length())
+                    break;
+                c = equationString.charAt(i);
+            } while (isDigit(c));
+            
+            // When we exit the loop, we want to decrement since the for loop
+            // will automatically re-increment i.
+            i--;
+            
+            System.out.println("Constant: " + number + " Variable name: " + variableName.toString());
+        }
+        
         return toReturn;
+    }
+    
+    private static boolean isDigit(char c)
+    {
+        return c >= '0' && c <= '9';
     }
 }

@@ -1,6 +1,6 @@
 package simplexsolver;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  * Represents a single constraint in a linear program.
@@ -8,13 +8,35 @@ import java.util.ArrayList;
  */
 public class Constraint 
 {
+    private HashMap<Variable, Integer> _equation;
+    private SimplexUtilities.Sign _sign;
+    private int _rhs;
+    
     /**
-     * Constructs a new constraint using the input string.
-     * @param constraintString A string representation of the constraint.
-     * @param variables The variables for this linear program.
+     * Define a constraint.
+     * @param equation The constraint's equation.
+     * @param sign The sign of the equation.
+     * @param rhs The constant on the right hand side of the equation.
      */
-    public Constraint(String constraintString, ArrayList<Variable> variables)
+    public Constraint(HashMap<Variable, Integer> equation, SimplexUtilities.Sign sign, int rhs)
     {
-        
+        _equation = equation;
+        _sign = sign;
+        _rhs = rhs;
+    }
+    
+    public HashMap<Variable, Integer> getEquation()
+    {
+        return _equation;
+    }
+    
+    public SimplexUtilities.Sign getSign()
+    {
+        return _sign;
+    }
+    
+    public int getRightHandSide()
+    {
+        return _rhs;
     }
 }
