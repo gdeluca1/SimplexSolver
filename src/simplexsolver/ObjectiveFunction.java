@@ -39,4 +39,9 @@ public class ObjectiveFunction
         
         _objective = SimplexUtilities.Objective.MAX;
     }
+
+    public HashMap<Variable, Double> getEquation() 
+    {
+        return _equation;
+    }
 }

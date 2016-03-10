@@ -65,15 +65,16 @@ public class SimplexController
             }
             
             // Check the objective function.
-            HashMap<Variable, Double> objectiveFunction = SimplexUtilities.buildEquation(_frame.getObjectivePanel().getEquation());
-            if (objectiveFunction == null)
+            HashMap<Variable, Double> objectiveFunctionEquation = SimplexUtilities.buildEquation(_frame.getObjectivePanel().getEquation());
+            if (objectiveFunctionEquation == null)
             {
                 // There was something wrong (and an error message has already been shown). Stop running.
                 return;
             }
+            ObjectiveFunction objectiveFunction = new ObjectiveFunction(objectiveFunctionEquation, _frame.getObjectivePanel().getObjective());
             
             // Check all of the constraints.
-            ArrayList<HashMap<Variable, Double>> constraints = new ArrayList<>();
+            ArrayList<Constraint> constraints = new ArrayList<>();
             for (ConstraintPanel panel : _frame.getConstraintPanels())
             {
                 HashMap<Variable, Double> constraint = SimplexUtilities.buildEquation(panel.getEquation());
@@ -83,12 +84,12 @@ public class SimplexController
                     return;
                 }
                 // Add the constraint to the list.
-                constraints.add(constraint);
+                constraints.add(new Constraint(constraint, panel.getSign(), panel.getRightHandSide()));
             }
             
             // If we reach this point, the syntax is all valid. We can start using the
             // Simplex algorithm now.
-            
+            Tableau tableau = new Tableau(objectiveFunction, constraints);
         });
         
         _frame.getButtonPanel().getAddButton().addActionListener(e ->
