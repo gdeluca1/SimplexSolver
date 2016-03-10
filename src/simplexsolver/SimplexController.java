@@ -90,6 +90,8 @@ public class SimplexController
             // If we reach this point, the syntax is all valid. We can start using the
             // Simplex algorithm now.
             Tableau tableau = new Tableau(objectiveFunction, constraints);
+            String solution = tableau.solve();
+            System.out.println(solution);
         });
         
         _frame.getButtonPanel().getAddButton().addActionListener(e ->

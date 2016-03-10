@@ -15,11 +15,16 @@ public class Tableau
     private double[][] _matrix;
     private TreeSet<Variable> _variables;
     private ObjectiveFunction _objective;
+    private ArrayList<Constraint> _constraints;
     private boolean _requiresTwoPhase = false;
     
     public Tableau(ObjectiveFunction objective, ArrayList<Constraint> constraints)
     {
         _objective = objective;
+        _constraints = constraints;
+        if (!_objective.isMaximize())
+            _objective.convertToMaximize();
+        
         // Add all the variables to the list, and sort by index number.
         // Variable index 1 will be index 0 in the matrix, and so on.
         _variables = new TreeSet<>((v1, v2) -> v1.getIndex() - v2.getIndex());
@@ -68,8 +73,8 @@ public class Tableau
         
         // Now we know how big to make the array
         // # of rows = 1 + # of constraints
-        // # of columns = # of variables.
-        _matrix = new double[1 + constraints.size()][_variables.size()];
+        // # of columns = # of variables + 1 for RHS.
+        _matrix = new double[1 + constraints.size()][_variables.size() + 1];
         
         // Start filling in the tableau.
         // Row 0: objective function (only if not two-phase).
@@ -94,6 +99,9 @@ public class Tableau
                 else
                     _matrix[0][i] = -entry.get().getValue();
             }
+            
+            // The RHS of the objective function starts at 0.
+            _matrix[0][_matrix[0].length - 1] = 0;
         }
         
         // Track the S/A variables that have already been used.
@@ -161,12 +169,15 @@ public class Tableau
                     throw new IllegalStateException("The case where this is a non-normal variable should have been handled.");
                 }
             }
+            
+            // Add in the RHS.
+            _matrix[i + 1][_matrix[i + 1].length - 1] = _constraints.get(i).getRightHandSide();
         }
         
         // If this is a two-phase problem, our first equation will be different.
         if (_requiresTwoPhase)
         {
-            for (int i = 0; i < _variables.size(); i++)
+            for (int i = 0; i <= _variables.size(); i++)
             {
                 _matrix[0][i] = 0.0;
                 if (artificalIndices.contains(i))
@@ -183,6 +194,68 @@ public class Tableau
         System.out.println(stringifyTableau(_variables, _matrix));
     }
     
+    public String solve()
+    {
+        if (_requiresTwoPhase)
+            solveFirstPhase();
+        
+        solveWithSimplex();
+        return stringifyTableau(_variables, _matrix);
+    }
+    
+    private void solveFirstPhase()
+    {
+        // The objective in the first phase is to minimze W.
+        // We have a method to solve maximize problems, so convert it
+        // to a maximize W problem.
+        for (int i = 0; i < _matrix[0].length; i++)
+        {
+            _matrix[0][i] = -_matrix[0][i];
+        }
+        System.out.println(stringifyTableau(_variables, _matrix));
+    }
+    
+    /**
+     * This method assumes that the objective function is the first row
+     * in the tableau and that it is a maximize.
+     */
+    private void solveWithSimplex()
+    {
+        // Run forever (until a solution is found).
+        for (;;)
+        {
+            // First we have to find the entering variable (most negative coefficient).
+            double mostNegative = _matrix[0][0];
+            int mostNegativeIndex = 0;
+            for (int i = 1; i < _matrix[0].length - 1; i++)
+            {
+                if (_matrix[0][i] < mostNegative)
+                {
+                    mostNegative = _matrix[0][i];
+                    mostNegativeIndex = i;
+                }
+            }
+            
+            // If there are no negative numbers, we are done.
+            if (mostNegative >= 0)
+            {
+                break;
+            }
+            
+            // Now we have to find the leaving variable (samllest MRT).
+            double[] mrt = new double[_matrix.length - 1];
+            
+            // We don't need to perform the mrt for the objective function.
+            for (int i = 1; i < _matrix.length; i++)
+            {
+                if (_matrix[i][mostNegativeIndex] <= 0)
+                    mrt[i - 1] = Double.NaN;
+                else
+                    mrt[i - 1] = _matrix[i][_matrix[i].length - 1] / _matrix[i][mostNegativeIndex];
+            }
+        }
+    }
+    
     private String stringifyTableau(TreeSet<Variable> variables, double[][] matrix)
     {
         StringBuilder toReturn = new StringBuilder();
@@ -190,12 +263,13 @@ public class Tableau
         {
             toReturn.append(variable.getName()).append("\t");
         });
-        for (double[] matrix1 : matrix) 
+        toReturn.append("RHS");
+        for (int i = 0; i < matrix.length; i++) 
         {
             toReturn.append("\n");
-            for (double item : matrix1)
+            for (int j = 0; j < matrix[i].length; j++)
             {
-                toReturn.append(item).append("\t");
+                toReturn.append(matrix[i][j]).append("\t");
             }
         }
         return toReturn.toString();

@@ -18,8 +18,8 @@ public class ConstraintPanel extends JPanel
     private final JComboBox _operator;
     private final String[] _potentialOperators = 
     {
-        "≥",
         "≤",
+        "≥",
         "="
     };
     private final JFormattedTextField _rightHandSide;
