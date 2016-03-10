@@ -37,4 +37,12 @@ public class VariablesPanel extends JPanel
     {
         return Integer.parseInt(_variableCount.getText().replace(",", ""));
     }
+    
+    /**
+     * Only for testing!
+     */
+    public void setValues(int variableCount)
+    {
+        _variableCount.setText("" + variableCount);
+    }
 }

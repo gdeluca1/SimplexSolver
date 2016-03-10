@@ -67,4 +67,14 @@ public class ConstraintPanel extends JPanel
     {
         return Integer.parseInt(_rightHandSide.getText());
     }
+    
+    /**
+     * Only for testing!
+     */
+    public void setValues(String eq, int sign, int rhs)
+    {
+        _leftHandSide.setText(eq);
+        _operator.setSelectedIndex(sign);
+        _rightHandSide.setText(rhs + "");
+    }
 }

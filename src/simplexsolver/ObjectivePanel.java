@@ -48,4 +48,13 @@ public class ObjectivePanel extends JPanel
     {
         return _equation.getText();
     }
+    
+    /**
+     * Only for testing!
+     */
+    public void setValues(String equation, int target)
+    {
+        _equation.setText(equation);
+        _target.setSelectedIndex(target);
+    }
 }

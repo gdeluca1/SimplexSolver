@@ -1,7 +1,11 @@
 package simplexsolver;
 
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.ListIterator;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.TreeSet;
@@ -17,13 +21,19 @@ public class Tableau
     private ObjectiveFunction _objective;
     private ArrayList<Constraint> _constraints;
     private boolean _requiresTwoPhase = false;
+    private LinkedList<Integer> _basicVariables;
+    private boolean _wasMinimize;
+    private ArrayList<Integer> _artificalIndices;
     
     public Tableau(ObjectiveFunction objective, ArrayList<Constraint> constraints)
     {
         _objective = objective;
         _constraints = constraints;
+        _wasMinimize = !_objective.isMaximize();
         if (!_objective.isMaximize())
             _objective.convertToMaximize();
+        
+        _basicVariables = new LinkedList<>();
         
         // Add all the variables to the list, and sort by index number.
         // Variable index 1 will be index 0 in the matrix, and so on.
@@ -106,7 +116,7 @@ public class Tableau
         
         // Track the S/A variables that have already been used.
         ArrayList<Integer> usedIndices = new ArrayList<>();
-        ArrayList<Integer> artificalIndices = new ArrayList<>();
+        _artificalIndices = new ArrayList<>();
         // Rows 1 - n: Constraints
         for (int i = 0; i < constraints.size(); i++)
         {
@@ -131,6 +141,8 @@ public class Tableau
                             case LESS_THAN:
                                 _matrix[i + 1][j] = 1;
                                 usedIndices.add(j);
+                                // Si is a basic variable.
+                                _basicVariables.addLast(j);
                                 break;
 
                             // -Si + Ai
@@ -140,14 +152,18 @@ public class Tableau
                                 j++;
                                 usedIndices.add(j - 1);
                                 usedIndices.add(j);
-                                artificalIndices.add(j);
+                                _artificalIndices.add(j);
+                                // Ai is a basic variable.
+                                _basicVariables.addLast(j);
                                 break;
 
                             // +Ai
                             case EQUAL:
                                 _matrix[i + 1][j] = 1;
                                 usedIndices.add(j);
-                                artificalIndices.add(j);
+                                _artificalIndices.add(j);
+                                // Ai is a basic variable.
+                                _basicVariables.addLast(j);
                                 break;
                         }
                         break;
@@ -180,7 +196,7 @@ public class Tableau
             for (int i = 0; i <= _variables.size(); i++)
             {
                 _matrix[0][i] = 0.0;
-                if (artificalIndices.contains(i))
+                if (_artificalIndices.contains(i))
                     _matrix[0][i] = -1.0;
                 
                 // Each element in this row is the sum of every other element in that column.
@@ -200,6 +216,11 @@ public class Tableau
             solveFirstPhase();
         
         solveWithSimplex();
+        
+        if (_wasMinimize)
+        {
+            _matrix[0][_matrix[0].length - 1] *= -1;
+        }
         return stringifyTableau(_variables, _matrix);
     }
     
@@ -213,6 +234,99 @@ public class Tableau
             _matrix[0][i] = -_matrix[0][i];
         }
         System.out.println(stringifyTableau(_variables, _matrix));
+        solveWithSimplex();
+        
+        // Now we need to put the original equation back in for phase 2.
+        for (int i = 0; i < _variables.size(); i++)
+        {
+            // Objective function has no s or a variables.
+            int currentIndex = i + 1;
+            Optional<Entry<Variable, Double>> entry = _objective.getEquation()
+                    .entrySet()
+                    .stream()
+                    .filter(kvp -> kvp.getKey().getIndex() == currentIndex)
+                    .findFirst();
+
+            // I am assuming that each variable only appears once. This
+            // assumption should be held by the programmer, and cannot be broken
+            // by the user.
+            // Entry will be null for s and a variables.
+            if (!entry.isPresent())
+                _matrix[0][i] = 0.0;
+            else
+                _matrix[0][i] = -entry.get().getValue();            
+        }
+        
+        System.out.println(stringifyTableau(_variables, _matrix));
+        
+        // Now we need to remove basic variables from the objective function.
+        ListIterator<Integer> iter = _basicVariables.listIterator();
+        int index = 0;
+        while (iter.hasNext())
+        {
+            int bv = iter.next();
+            // bv = index of basic variable (column number).
+            // index = row which contains that variable set to 1.
+            double coefficient = _matrix[0][bv];
+            for (int i = 0; i < _matrix[0].length; i++)
+            {
+                _matrix[0][i] -= (coefficient * _matrix[index + 1][i]);
+            }
+            
+            index++;
+        }
+        
+        // Finally, we have to remove the artificial variables.
+        removeArtificialVariables();
+        
+        System.out.println(stringifyTableau(_variables, _matrix));
+    }
+    
+    private void removeArtificialVariables()
+    {
+        // We have to adjust the indices of the basic variables as we perform this operator.
+        double[][] newMatrix = new double[_matrix.length][_matrix[0].length - _artificalIndices.size()];
+        
+        int actualColumn = newMatrix[0].length;
+        // First iterate over the columns.
+        for (int j = _matrix[0].length - 1; j >= 0; j--)
+        {
+            if (!_artificalIndices.contains(j))
+            {
+                actualColumn--;
+            }
+            else
+            {
+                // This column will be removed. Update the basic variable list.
+                for (int k = 0; k < _basicVariables.size(); k++)
+                {
+                    if (_basicVariables.get(k) == j)
+                    {
+                        // Artifical variables should never be basic variables at this point.
+                        GraphicUtilities.showErrorMessage("Error: An artifical variable is a " +
+                                "basic variable after the first phase completed.", "ERROR");
+                    }
+                    else if (_basicVariables.get(k) > j)
+                    {
+                        // Decrease the index to make up for the loss of the artifical variable.
+                        // We are iterating the list backwards, so deducting 1 should not cause an issue.
+                        _basicVariables.set(k, _basicVariables.get(k) - 1);
+                    }
+                    
+                    // We also need to remove the artifical variable from the variables list.
+                    // Remember that variable indices start at 1.
+                    int indexToRemove = j + 1;
+                    _variables.removeIf(var -> var.getIndex() == indexToRemove);
+                }
+                continue;
+            }
+            for (int i = 0; i < _matrix.length; i++)
+            {
+                newMatrix[i][actualColumn] = _matrix[i][j];
+            }
+        }
+        
+        _matrix = newMatrix;
     }
     
     /**
@@ -266,11 +380,38 @@ public class Tableau
                 }
             }
             
+            _basicVariables.set(smallestMRTIndex, mostNegativeIndex);
+            
+            // This index will be one less than expected since we ignored the
+            // objective function. Increment it to fix that issue.
+            smallestMRTIndex++;
+            
             // Now that we have our entering and leaving variables, we need to
             // create a new matrix for our tableau.
             double[][] newMatrix = new double[_matrix.length][_matrix[0].length];
-            // TODO: I need an array of the basic variables so I can keep track of them.
-            // May integrate it into stringifyTableau as well.
+            
+            // First we'll update the pivot row (divide by the coefficient of the entering variable).
+            for (int i = 0; i < _matrix[smallestMRTIndex].length; i++)
+            {
+                newMatrix[smallestMRTIndex][i] = (_matrix[smallestMRTIndex][i] / _matrix[smallestMRTIndex][mostNegativeIndex]);
+            }
+            
+            // Now we have to update all the other rows (make the entering variable value 0).
+            for (int i = 0; i < _matrix.length; i++)
+            {
+                // This row has already been handled, skip it.
+                if (i == smallestMRTIndex)
+                    continue;
+                
+                double coefficient = _matrix[i][mostNegativeIndex];
+                for (int j = 0; j < _matrix[i].length; j++)
+                {
+                    newMatrix[i][j] = _matrix[i][j] - coefficient * newMatrix[smallestMRTIndex][j];
+                }
+            }
+            
+            _matrix = newMatrix;
+            System.out.println(stringifyTableau(_variables, _matrix));
         }
     }
     
@@ -282,12 +423,16 @@ public class Tableau
             toReturn.append(variable.getName()).append("\t");
         });
         toReturn.append("RHS");
+        
+        DecimalFormat df = new DecimalFormat("#.####");
+        df.setRoundingMode(RoundingMode.HALF_UP);
+        
         for (int i = 0; i < matrix.length; i++) 
         {
             toReturn.append("\n");
             for (int j = 0; j < matrix[i].length; j++)
             {
-                toReturn.append(matrix[i][j]).append("\t");
+                toReturn.append(df.format(matrix[i][j])).append("\t");
             }
         }
         return toReturn.toString();
