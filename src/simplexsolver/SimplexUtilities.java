@@ -1,9 +1,11 @@
 package simplexsolver;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * This class provides utilities needed for creating and solving
@@ -154,26 +156,11 @@ public class SimplexUtilities
             }
             else
             {
-                // If this is a different iteration, we will have to eat potential
-                // spaces and find a sign.
-//                if (c == ' ');
-//                {
-//                    // At most 1 space between operators.
-//                    i++;
-//                    c = equationString.charAt(i);
-//                }
-                
+                // If this is a different iteration, we will have to find a sign.
                 // Check the sign.
                 isNegative = (c == '-');
                 i++;
                 c = equationString.charAt(i);
-                
-                // Eat another potential space.
-//                if (c == ' ')
-//                {
-//                    i++;
-//                    c = equationString.charAt(i);
-//                }
             }
             
             // Since the regex was successful, there is guaranteed to be a variable
@@ -215,8 +202,29 @@ public class SimplexUtilities
             // will automatically re-increment i.
             i--;
             
-            System.out.println("Constant: " + number + " Variable name: " + variableName.toString());
+//            System.out.println("Constant: " + number + " Variable name: " + variableName.toString());
+            
+            Object[] matches = toReturn
+                .keySet()
+                .stream()
+                .filter(key -> key.getName().equals(variableName.toString()))
+                .toArray();
+            
+            if (matches.length > 1)
+                throw new IllegalStateException("There are multiple variables with the same name.");
+            else if (matches.length == 0)
+            {
+                GraphicUtilities.showErrorMessage(
+                        "You attempted to use variable <" + variableName.toString() + "> but it is not a defined variable.", 
+                        "Undeclared Variable");
+                return null;
+            }
+            
+            // If neither of the above error cases occurred, we have found the variable
+            // corresponding to the coefficient we read in.
+            toReturn.replace((Variable)matches[0], number);
         }
+        
         
         return toReturn;
     }
