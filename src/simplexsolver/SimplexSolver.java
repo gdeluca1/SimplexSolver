@@ -20,7 +20,7 @@ public class SimplexSolver
         SimplexController.attachController(_frame);
         
         // For testing.
-        int testCase = -1;
+        int testCase = 3;
         // Test Case 1:
         if (testCase == 1)
         {
@@ -40,6 +40,16 @@ public class SimplexSolver
             constraint.setValues("X1 + 2X2 - X3", 0, 20);
             _frame.addConstraintPanel().setValues("-2X1 + 4X2 + 2X3", 0, 60);
             _frame.addConstraintPanel().setValues("2X1 + 3X2 + X3", 0, 50);
+        }
+        
+        else if (testCase == 3)
+        {
+            _frame.getVariablesPanel().setValues(2);
+            _frame.getObjectivePanel().setValues("15X1 + 20X2", 1);
+            ConstraintPanel constraint = _frame.getConstraintPanels().peek();
+            constraint.setValues("X1 + 2X2", 1, 10);
+            _frame.addConstraintPanel().setValues("2X1 - 3X2", 0, 6);
+            _frame.addConstraintPanel().setValues("X1 + X2", 1, 6);
         }
         
         _frame.setVisible(true);

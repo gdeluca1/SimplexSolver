@@ -4,6 +4,7 @@ import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.ListIterator;
 import java.util.Map.Entry;
@@ -207,7 +208,7 @@ public class Tableau
             }
         }
         
-        System.out.println(stringifyTableau(_variables, _matrix));
+        System.out.println(stringifyTableau(_variables, _matrix, _requiresTwoPhase ? 'W' : 'Z'));
     }
     
     public String solve()
@@ -215,13 +216,13 @@ public class Tableau
         if (_requiresTwoPhase)
             solveFirstPhase();
         
-        solveWithSimplex();
+        solveWithSimplex('Z');
         
         if (_wasMinimize)
         {
             _matrix[0][_matrix[0].length - 1] *= -1;
         }
-        return stringifyTableau(_variables, _matrix);
+        return stringifyTableau(_variables, _matrix, 'Z');
     }
     
     private void solveFirstPhase()
@@ -233,8 +234,8 @@ public class Tableau
         {
             _matrix[0][i] = -_matrix[0][i];
         }
-        System.out.println(stringifyTableau(_variables, _matrix));
-        solveWithSimplex();
+        System.out.println(stringifyTableau(_variables, _matrix, 'W'));
+        solveWithSimplex('W');
         
         // Now we need to put the original equation back in for phase 2.
         for (int i = 0; i < _variables.size(); i++)
@@ -257,7 +258,7 @@ public class Tableau
                 _matrix[0][i] = -entry.get().getValue();            
         }
         
-        System.out.println(stringifyTableau(_variables, _matrix));
+        System.out.println(stringifyTableau(_variables, _matrix, 'Z'));
         
         // Now we need to remove basic variables from the objective function.
         ListIterator<Integer> iter = _basicVariables.listIterator();
@@ -279,7 +280,7 @@ public class Tableau
         // Finally, we have to remove the artificial variables.
         removeArtificialVariables();
         
-        System.out.println(stringifyTableau(_variables, _matrix));
+        System.out.println(stringifyTableau(_variables, _matrix, 'Z'));
     }
     
     private void removeArtificialVariables()
@@ -333,7 +334,7 @@ public class Tableau
      * This method assumes that the objective function is the first row
      * in the tableau and that it is a maximize.
      */
-    private void solveWithSimplex()
+    private void solveWithSimplex(char objectiveVariable)
     {
         // Run forever (until a solution is found).
         for (;;)
@@ -411,13 +412,14 @@ public class Tableau
             }
             
             _matrix = newMatrix;
-            System.out.println(stringifyTableau(_variables, _matrix));
+            System.out.println(stringifyTableau(_variables, _matrix, objectiveVariable));
         }
     }
     
-    private String stringifyTableau(TreeSet<Variable> variables, double[][] matrix)
+    private String stringifyTableau(TreeSet<Variable> variables, double[][] matrix, char objectiveVariable)
     {
         StringBuilder toReturn = new StringBuilder();
+        toReturn.append("BV\tEQ\t").append(objectiveVariable).append("\t");
         variables.stream().forEach((variable) -> 
         {
             toReturn.append(variable.getName()).append("\t");
@@ -426,10 +428,34 @@ public class Tableau
         
         DecimalFormat df = new DecimalFormat("#.####");
         df.setRoundingMode(RoundingMode.HALF_UP);
+        int basicVariableCount = -1;
         
         for (int i = 0; i < matrix.length; i++) 
         {
             toReturn.append("\n");
+            if (basicVariableCount == -1)
+                toReturn.append(objectiveVariable).append("\t");
+            else
+            {
+                // Get the basic variable.
+                int basicVariableIndex = _basicVariables.get(basicVariableCount);
+                Iterator<Variable> iter = _variables.iterator();
+                for (int j = 0; j < basicVariableIndex; j++)
+                {
+                    iter.next();
+                }
+                toReturn.append(iter.next().getName()).append("\t");
+            }
+            toReturn.append(basicVariableCount + 1).append("\t");
+            if (basicVariableCount == -1)
+            {
+                toReturn.append("1\t");
+            }
+            else
+            {
+                toReturn.append("0\t");
+            }
+            basicVariableCount++;
             for (int j = 0; j < matrix[i].length; j++)
             {
                 toReturn.append(df.format(matrix[i][j])).append("\t");
