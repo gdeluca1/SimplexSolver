@@ -91,8 +91,12 @@ public class SimplexController
             // Simplex algorithm now.
             Tableau tableau = new Tableau(objectiveFunction, constraints);
             String solution = tableau.solve();
-            GraphicUtilities.showMessage(solution, "Solution Found");
-            System.out.println(solution);
+            if (solution != null)
+            {
+                GraphicUtilities.showMessage(solution, "Solution Found");
+                System.out.println(solution);
+            }
+            // If solution was null, an error message was printed and no solution was found.
         });
         
         _frame.getButtonPanel().getAddButton().addActionListener(e ->

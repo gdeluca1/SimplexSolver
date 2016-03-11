@@ -214,9 +214,11 @@ public class Tableau
     public String solve()
     {
         if (_requiresTwoPhase)
-            solveFirstPhase();
+            if (!solveFirstPhase())
+                return null;
         
-        solveWithSimplex('Z');
+        if (!solveWithSimplex('Z'))
+            return null;
         
         if (_wasMinimize)
         {
@@ -225,7 +227,7 @@ public class Tableau
         return stringifyTableau(_variables, _matrix, 'Z');
     }
     
-    private void solveFirstPhase()
+    private boolean solveFirstPhase()
     {
         // The objective in the first phase is to minimze W.
         // We have a method to solve maximize problems, so convert it
@@ -235,7 +237,8 @@ public class Tableau
             _matrix[0][i] = -_matrix[0][i];
         }
         System.out.println(stringifyTableau(_variables, _matrix, 'W'));
-        solveWithSimplex('W');
+        if (!solveWithSimplex('W'))
+            return false;
         
         // Now we need to put the original equation back in for phase 2.
         for (int i = 0; i < _variables.size(); i++)
@@ -281,6 +284,8 @@ public class Tableau
         removeArtificialVariables();
         
         System.out.println(stringifyTableau(_variables, _matrix, 'Z'));
+        
+        return true;
     }
     
     private void removeArtificialVariables()
@@ -334,7 +339,7 @@ public class Tableau
      * This method assumes that the objective function is the first row
      * in the tableau and that it is a maximize.
      */
-    private void solveWithSimplex(char objectiveVariable)
+    private boolean solveWithSimplex(char objectiveVariable)
     {
         // Run forever (until a solution is found).
         for (;;)
@@ -382,6 +387,12 @@ public class Tableau
                 }
             }
             
+            if (smallestMRT == Double.POSITIVE_INFINITY)
+            {
+                GraphicUtilities.showErrorMessage("The LP is unbounded and cannot be solved.", "Solve Error");
+                return false;
+            }
+            
             _basicVariables.set(smallestMRTIndex, mostNegativeIndex);
             
             // This index will be one less than expected since we ignored the
@@ -415,6 +426,8 @@ public class Tableau
             _matrix = newMatrix;
             System.out.println(stringifyTableau(_variables, _matrix, objectiveVariable));
         }
+        
+        return true;
     }
     
     private String stringifyTableau(TreeSet<Variable> variables, double[][] matrix, char objectiveVariable)

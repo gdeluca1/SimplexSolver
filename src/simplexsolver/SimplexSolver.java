@@ -20,7 +20,7 @@ public class SimplexSolver
         SimplexController.attachController(_frame);
         
         // For testing.
-        int testCase = 3;
+        int testCase = -1;
         // Test Case 1:
         if (testCase == 1)
         {
