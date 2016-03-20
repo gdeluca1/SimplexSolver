@@ -19,6 +19,7 @@ public class Tableau
 {
     private double[][] _matrix;
     private TreeSet<Variable> _variables;
+    private TreeSet<Variable> _originalVariables;
     private ObjectiveFunction _objective;
     private ArrayList<Constraint> _constraints;
     private boolean _requiresTwoPhase = false;
@@ -39,11 +40,16 @@ public class Tableau
         // Add all the variables to the list, and sort by index number.
         // Variable index 1 will be index 0 in the matrix, and so on.
         _variables = new TreeSet<>((v1, v2) -> v1.getIndex() - v2.getIndex());
+        _originalVariables = new TreeSet<>((v1, v2) -> v1.getIndex() - v2.getIndex());
         HashMap<Variable, Double> objectiveEquation = objective.getEquation();
         objectiveEquation
                 .entrySet()
                 .stream()
-                .forEach(kvp -> _variables.add(kvp.getKey()));
+                .forEach(kvp -> 
+                {
+                    _variables.add(kvp.getKey());
+                    _originalVariables.add(kvp.getKey());
+                });
         
         // We also need some slack/surplus/artificial variables.
         // If _variables has 3 items, that means the next index is 4.
@@ -224,7 +230,45 @@ public class Tableau
         {
             _matrix[0][_matrix[0].length - 1] *= -1;
         }
-        return stringifyTableau(_variables, _matrix, 'Z');
+        
+        // Get the values of all of the original variables.
+        HashMap<String, Double> originalVariableValues = new HashMap<>();
+        // First, set all the values to 0.
+        _originalVariables.stream().forEach((v) -> 
+        {
+            originalVariableValues.put(v.getName(), 0.0);
+        }); 
+        // Only the ones that are basic variables will have values.
+        for (int i = 0; i < _basicVariables.size(); i++)
+        {
+            if (_originalVariables.size() > _basicVariables.get(i))
+            {
+                // We have found a basic variable that is one of the original X variables.
+                // We need to find the value.
+                double value = _matrix[i + 1][_matrix[i+1].length - 1];
+                Iterator<Variable> iter = _originalVariables.iterator();
+                for (int j = 0; j < _basicVariables.get(i); j++)
+                {
+                    iter.next();
+                }
+                originalVariableValues.replace(iter.next().getName(), value);
+            }
+        }
+        
+        DecimalFormat df = new DecimalFormat("#.####");
+        df.setRoundingMode(RoundingMode.HALF_UP);
+        
+        StringBuilder toReturn = new StringBuilder();
+        originalVariableValues
+                .entrySet()
+                .stream()
+                .forEach(kvp ->
+                {
+                    toReturn.append(kvp.getKey()).append('*').append(": ").append(df.format(kvp.getValue())).append('\n');
+                });
+        toReturn.append("Z*: ").append(df.format(_matrix[0][_matrix[0].length - 1])).append('\n');
+        
+        return toReturn.append('\n').append(stringifyTableau(_variables, _matrix, 'Z')).toString();
     }
     
     private boolean solveFirstPhase()

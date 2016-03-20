@@ -40,4 +40,10 @@ public class Variable
     {
         _alias = alias;
     }
+
+    @Override
+    public String toString() 
+    {
+        return getName() + "@" + getIndex();
+    }
 }
