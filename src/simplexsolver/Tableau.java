@@ -325,17 +325,19 @@ public class Tableau
         }
         
         // Finally, we have to remove the artificial variables.
-        removeArtificialVariables();
+        if (!removeArtificialVariables())
+            return false;
         
         System.out.println(stringifyTableau(_variables, _matrix, 'Z'));
         
         return true;
     }
     
-    private void removeArtificialVariables()
+    private boolean removeArtificialVariables()
     {
         // We have to adjust the indices of the basic variables as we perform this operator.
         double[][] newMatrix = new double[_matrix.length][_matrix[0].length - _artificalIndices.size()];
+        String previousTableau = stringifyTableau(_variables, _matrix, 'W');
         
         int actualColumn = newMatrix[0].length;
         // First iterate over the columns.
@@ -353,8 +355,12 @@ public class Tableau
                     if (_basicVariables.get(k) == j)
                     {
                         // Artifical variables should never be basic variables at this point.
-                        GraphicUtilities.showErrorMessage("Error: An artifical variable is a " +
-                                "basic variable after the first phase completed.", "ERROR");
+//                        String errorMessage = "The LP is infeasible and cannot be solved.\n\nCurrent Tableau:\n" + previousTableau;
+//                        GraphicUtilities.showMessage(errorMessage, "Infeasible LP");
+                        GraphicUtilities.showErrorMessage("The LP is infeasible and cannot be solved.", "Solve Error");
+                        return false;
+//                        GraphicUtilities.showErrorMessage("Error: An artifical variable is a " +
+//                                "basic variable after the first phase completed.", "ERROR");
                     }
                     else if (_basicVariables.get(k) > j)
                     {
@@ -377,6 +383,7 @@ public class Tableau
         }
         
         _matrix = newMatrix;
+        return true;
     }
     
     /**
@@ -388,6 +395,32 @@ public class Tableau
         // Run forever (until a solution is found).
         for (;;)
         {
+            // As a pre-check, we will look for unsolvable tableaus.
+            // Check for infeasible tableau.
+            // This check was moved to the first phase of the two phase method.
+//            infeasibleCheck:
+//            for (int i = 1; i < _matrix.length; i++)
+//            {
+//                byte sign = _matrix[i][_matrix[i].length - 1] < 0 ? (byte)-1 : (byte)1;
+//                // Verify that at least one item in this row has a different sign.
+//                for (int j = 0; j < _matrix[i].length - 1; j++)
+//                {
+//                    byte tempSign = _matrix[i][j] < 0 ? (byte)-1 : (byte)1;
+//                    if (tempSign == sign)
+//                    {
+//                        break infeasibleCheck;
+//                    }
+//                }
+//                
+//                // If we reach this point, we did not break (which means we did not
+//                // find a number with the same sign as the RHS.
+//                // Thus, this tableau is unfeasible.
+//                String errorMessage = "The LP is infeasible and cannot be solved.\n\nCurrent Tableau:\n" +
+//                        stringifyTableau(_variables, _matrix, objectiveVariable);
+//                GraphicUtilities.showErrorMessage(errorMessage, "Infeasible LP");
+//                return false;
+//            }
+            
             // First we have to find the entering variable (most negative coefficient).
             double mostNegative = _matrix[0][0];
             int mostNegativeIndex = 0;
@@ -433,7 +466,10 @@ public class Tableau
             
             if (smallestMRT == Double.POSITIVE_INFINITY)
             {
-                GraphicUtilities.showErrorMessage("The LP is unbounded and cannot be solved.", "Solve Error");
+                if (objectiveVariable == 'W')
+                    GraphicUtilities.showErrorMessage("The LP is infeasible and cannot be solved.", "Solve Error");
+                else
+                    GraphicUtilities.showErrorMessage("The LP is unbounded and cannot be solved.", "Solve Error");
                 return false;
             }
             
